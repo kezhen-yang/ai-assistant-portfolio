@@ -579,18 +579,19 @@
                 });
         
                 if (!response.ok) {
-                    throw new Error('API request failed');
+                    const errorText = await response.text();
+                    console.error('API Error:', errorText);
+                    throw new Error(`API request failed: ${response.status}`);
                 }
         
                 const data = await response.json();
                 return data.choices[0].message.content;
             } catch (error) {
                 console.error('Error calling API:', error);
-                // Fallback to a simple response if API fails
                 return "I apologize, but I'm having trouble connecting to my AI service right now. Please try again in a moment, or feel free to reach out directly at kezhenyang12@gmail.com!";
             }
         }
-
+        
         // Test the functionality
         console.log('Chatbot fully initialized and ready!');
         
