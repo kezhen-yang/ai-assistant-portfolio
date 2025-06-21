@@ -1,11 +1,13 @@
 <div align="center">
   
-# 👋 Hi, I'm Kezhen Yang!
+## 🤖 Chat with Me!
 
-<a href="https://kezhen-yang.github.io/kezhen-yang/">
-  <img src="https://img.shields.io/badge/💬_Chat_with_my_AI_Assistant-Click_Here!-brightgreen?style=for-the-badge&logo=openai" alt="Chat with Me" />
+Want to learn more about my background and experience?
+
+<a href="https://kezhen-yang.github.io/ai-assistant-portfolio/">
+  <img src="https://img.shields.io/badge/💬_Chat_with_my_AI_Assistant-Click_Here!-brightgreen?style=for-the-badge&logo=openai" alt="Chat with AI Assistant" />
 </a>
 
-### Want to learn about my background instantly? My AI assistant is available 24/7!
+*Ask about my projects, technical skills, professional experience, or career goals!*
 
 </div>
