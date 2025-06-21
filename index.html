@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Kezhen Yang</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .ai-indicator {
+            font-size: 12px;
+            color: #10b981;
+            margin-top: 2px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            object-fit: cover;
+            border: 3px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .avatar-large.fallback {
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            border: none;
+        }
+
+        .welcome-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff, #a1a1aa);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-subtitle {
+            font-size: 18px;
+            color: #a1a1aa;
+            margin-bottom: 40px;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        .suggestion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 40px;
+        }
+
+        .suggestion-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .suggestion-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .suggestion-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .suggestion-card p {
+            font-size: 14px;
+            color: #a1a1aa;
+            line-height: 1.4;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: none;
+        }
+
+        .chat-messages.active {
+            display: block;
+        }
+
+        .message {
+            max-width: 85%;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .message.user {
+            margin-left: auto;
+        }
+
+        .message.bot {
+            margin-right: auto;
+        }
+
+        .message-content {
+            padding: 16px 20px;
+            border-radius: 18px;
+            white-space: pre-line;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message.bot .message-content {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border-bottom-left-radius: 6px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            border-bottom-left-radius: 6px;
+            max-width: 80px;
+            margin-bottom: 24px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid #333;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .input-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .chat-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 16px 60px 16px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: none;
+            min-height: 56px;
+            max-height: 200px;
+        }
+
+        .chat-input::placeholder {
+            color: #666;
+        }
+
+        .chat-input:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+
+        .send-button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .new-chat-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .new-chat-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .welcome-title {
+                font-size: 28px;
+            }
+            
+            .welcome-subtitle {
+                font-size: 16px;
+            }
+            
+            .suggestion-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+            
+            .avatar-large {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+            
+            .input-area {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="new-chat-button" onclick="chatbot.resetChat()">New Chat</button>
+    
+    <div class="chat-container">
+        <div class="header">
+            <h1>Kezhen Yang AI Assistant</h1>
+            <p>Solution Advisor | Data Specialist | ML/AI Engineering Focused</p>
+            <div class="ai-indicator">🤖 Enhanced with OpenAI for comprehensive responses</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="welcome-screen" id="welcomeScreen">
+                <img src="profile.jpg" alt="Kezhen Yang" class="avatar-large" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="avatar-large fallback" style="display: none;">KY</div>
+                <h1 class="welcome-title">Good evening!</h1>
+                <p class="welcome-subtitle">I'm Kezhen Yang's AI assistant. I can tell you about my professional experience in data analytics and process intelligence, my expertise in ML/AI technologies, technical projects, and career aspirations in Machine Learning Engineering.</p>
+                
+                <div class="suggestion-grid">
+                    <div class="suggestion-card" onclick="chatbot.askSuggestion('Tell me about your professional background')">
+                        <h3>💼 Professional Background</h3>
+                        <p>Learn about my experience in data analytics and ML/AI engineering</p>
+                    </div>
+                    <div class="suggestion-card" onclick="chatbot.askSuggestion('Show me your ML and AI projects')">
+                        <h3>🤖 ML/AI Projects</h3>
+                        <p>Explore my hands-on projects in machine learning and AI</p>
+                    </div>
+                    <div class="suggestion-card" onclick="chatbot.askSuggestion('What are your technical skills?')">
+                        <h3>💻 Technical Skills</h3>
+                        <p>Discover my programming languages, ML frameworks, and tools</p>
+                    </div>
+                    <div class="suggestion-card" onclick="chatbot.askSuggestion('Tell me about your career goals')">
+                        <h3>🎯 Career Goals</h3>
+                        <p>Learn about my aspirations in Machine Learning Engineering</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be added here -->
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div class="input-wrapper">
+                <textarea class="chat-input" id="chatInput" placeholder="Ask me anything about my experience, skills, or projects..." rows="1"></textarea>
+                <button class="send-button" id="sendButton" disabled>
+                    ➤
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class KezhenChatbot {
+            constructor() {
+                this.messages = [];
+                this.isTyping = false;
+                this.aiResponses = null;
+                this.init();
+                this.loadAIResponses();
+            }
+
+            async loadAIResponses() {
+                try {
+                    const response = await fetch('./ai-responses.json');
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.aiResponses = data.responses;
+                        console.log('AI responses loaded successfully');
+                    }
+                } catch (error) {
+                    console.log('AI responses not available, using personal knowledge only');
+                }
+            }
+
+            init() {
+                this.welcomeScreen = document.getElementById('welcomeScreen');
+                this.chatMessages = document.getElementById('chatMessages');
+                this.chatInput = document.getElementById('chatInput');
+                this.sendButton = document.getElementById('sendButton');
+
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                this.sendButton.addEventListener('click', () => this.handleSend());
+                
+                this.chatInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.handleSend();
+                    }
+                });
+
+                this.chatInput.addEventListener('input', () => {
+                    this.autoResize();
+                    this.sendButton.disabled = !this.chatInput.value.trim();
+                });
+            }
+
+            autoResize() {
+                this.chatInput.style.height = 'auto';
+                this.chatInput.style.height = Math.min(this.chatInput.scrollHeight, 200) + 'px';
+            }
+
+            askSuggestion(question) {
+                this.startChat();
+                this.chatInput.value = question;
+                this.handleSend();
+            }
+
+            startChat() {
+                this.welcomeScreen.style.display = 'none';
+                this.chatMessages.classList.add('active');
+            }
+
+            resetChat() {
+                this.messages = [];
+                this.chatMessages.innerHTML = '';
+                this.chatMessages.classList.remove('active');
+                this.welcomeScreen.style.display = 'flex';
+                this.chatInput.value = '';
+                this.sendButton.disabled = true;
+            }
+
+            handleSend() {
+                const message = this.chatInput.value.trim();
+                if (!message || this.isTyping) return;
+
+                if (this.welcomeScreen.style.display !== 'none') {
+                    this.startChat();
+                }
+
+                this.addMessage(message, 'user');
+                this.chatInput.value = '';
+                this.chatInput.style.height = 'auto';
+                this.sendButton.disabled = true;
+
+                this.showTypingIndicator();
+                setTimeout(() => {
+                    this.hideTypingIndicator();
+                    const response = this.generateResponse(message);
+                    this.addMessage(response, 'bot');
+                }, 800 + Math.random() * 1200);
+            }
+
+            addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.textContent = text;
+                
+                messageDiv.appendChild(contentDiv);
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            showTypingIndicator() {
+                this.isTyping = true;
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.id = 'typingIndicator';
+                typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+                this.chatMessages.appendChild(typingDiv);
+                this.scrollToBottom();
+            }
+
+            hideTypingIndicator() {
+                this.isTyping = false;
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            scrollToBottom() {
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+
+            generateResponse(message) {
+                const lowerMessage = message.toLowerCase();
+
+                // First, check for personal/professional information (highest priority)
+                const personalResponse = this.getPersonalResponse(lowerMessage);
+                if (personalResponse) {
+                    return personalResponse;
+                }
+
+                // Second, check pre-generated AI responses for common questions
+                if (this.aiResponses) {
+                    // Try exact match first
+                    if (this.aiResponses[lowerMessage]) {
+                        return this.aiResponses[lowerMessage] + "\n\n💡 *This response was enhanced with AI to provide you with the most helpful information.*";
+                    }
+                    
+                    // Try partial matches for common topics
+                    for (const [question, response] of Object.entries(this.aiResponses)) {
+                        const questionWords = question.split(' ');
+                        const messageWords = lowerMessage.split(' ');
+                        
+                        // Check if message contains most key words from a pre-generated question
+                        const matchCount = questionWords.filter(word => 
+                            messageWords.some(msgWord => msgWord.includes(word) || word.includes(msgWord))
+                        ).length;
+                        
+                        if (matchCount >= Math.min(3, questionWords.length * 0.6)) {
+                            return response + "\n\n💡 *This response was enhanced with AI to provide you with the most helpful information.*";
+                        }
+                    }
+                }
+
+                // Third, fall back to comprehensive personal knowledge base
+                return this.getFallbackResponse(lowerMessage);
+            }
+
+            getPersonalResponse(lowerMessage) {
+
+            getPersonalResponse(lowerMessage) {
+                // Professional Background & Career Goals
+                if (lowerMessage.includes('professional') && (lowerMessage.includes('background') || lowerMessage.includes('experience'))) {
+                    return "💼 I'm a Solution Advisor - Data Specialist at SAP America with 4+ years of experience in data analytics and business transformation. My expertise spans process intelligence, ML/AI technologies, and large-scale data processing.\n\n🎯 I'm focused on advancing my career in Machine Learning Engineering, leveraging my strong foundation in data analytics and hands-on ML project experience.";
+                }
+
+                if (lowerMessage.includes('career') && (lowerMessage.includes('goal') || lowerMessage.includes('aspiration') || lowerMessage.includes('objective'))) {
+                    return "🎯 My career is focused on Machine Learning Engineering and AI Engineering roles where I can build production ML systems that solve real-world problems.\n\n💡 I'm leveraging my 4+ years of data experience while expanding my ML/AI expertise through hands-on projects and continuous learning. My business background gives me unique insight into ML solutions that drive real value.";
+                }
+
+                // Repository Navigation & Projects
+                if (lowerMessage.includes('project') || lowerMessage.includes('repo') || lowerMessage.includes('repository') || lowerMessage.includes('code') || lowerMessage.includes('github')) {
+                    return this.getProjectNavigationResponse(lowerMessage);
+                }
+
+                // Contact Information
+                if (lowerMessage.includes('contact') || lowerMessage.includes('reach') || lowerMessage.includes('linkedin') || lowerMessage.includes('email')) {
+                    return "You can reach me at kezhenyang12@gmail.com or connect with me on LinkedIn at linkedin.com/in/kezhenyang. I'm also on GitHub at github.com/kezhen-yang. Always happy to connect with fellow professionals!";
+                }
+
+                // Current Role
+                if (lowerMessage.includes('current') && (lowerMessage.includes('role') || lowerMessage.includes('job') || lowerMessage.includes('position'))) {
+                    return "I'm currently a Solution Advisor - Data Specialist at SAP America, where I lead Process Mining POCs and have influenced $10M+ in contracts with clients like Microsoft and Kraft Heinz. I've been at SAP since January 2022.\n\n🎯 I'm focused on advancing my career in Machine Learning Engineering, leveraging this business + technical experience to build production ML systems!";
+                }
+
+                // Location
+                if (lowerMessage.includes('location') || lowerMessage.includes('where') || lowerMessage.includes('based')) {
+                    return "I'm based in Austin, Texas! 🤠 It's a great city for tech with amazing food, music, and a vibrant startup scene. You can reach me at kezhenyang12@gmail.com or connect with me on LinkedIn.";
+                }
+
+                // Education
+                if (lowerMessage.includes('education') || lowerMessage.includes('degree') || lowerMessage.includes('university') || lowerMessage.includes('school')) {
+                    return "I have both my Bachelor's and Master's degrees from The University of Texas at Austin. I earned my B.A. in Economics in 2019 (GPA: 3.77) and my M.S. in Business Analytics in 2020 (GPA: 3.66). Hook 'em Horns! 🤘";
+                }
+
+                // Technical Skills
+                if (lowerMessage.includes('skill') && (lowerMessage.includes('technical') || lowerMessage.includes('programming'))) {
+                    return "My technical skills include Python, SQL, R, SAS, HTML, JavaScript, and SIGNAL for programming. I'm experienced with ML/AI technologies like LLM, GenAI, GPT, Claude, and various algorithms. I work with cloud platforms (AWS, GCP, Azure) and specialize in ETL pipelines, process mining, and data analytics.";
+                }
+
+                return null; // No personal response found
+            }
+
+            getFallbackResponse(lowerMessage) {
+
+            getFallbackResponse(lowerMessage) {
+                // ML/AI specific questions about Kezhen
+                if (lowerMessage.includes('ml') && (lowerMessage.includes('engineer') || lowerMessage.includes('engineering')) || lowerMessage.includes('mle')) {
+                    return "🎯 Machine Learning Engineer is my target role! I'm building comprehensive skills through:\n\n🔬 Hands-on ML projects (3D object detection, predictive modeling)\n☁️ Cloud ML platforms (AWS, GCP, Azure)\n🛠️ MLOps practices and model deployment\n📊 Production-scale data processing (I've worked with 18TB+ datasets)\n\nMy business background gives me unique insight into ML solutions that drive real value!";
+                }
+
+                if (lowerMessage.includes('ai engineer') || lowerMessage.includes('artificial intelligence')) {
+                    return "🤖 AI Engineer is another exciting focus area for me! I'm actively developing expertise in:\n\n🧠 LLM and GenAI technologies (GPT, Claude, prompt engineering)\n🔗 AI API integration (OpenAI, Anthropic)\n⚡ Real-time AI applications (like my hand tracking project)\n🏗️ AI system architecture and deployment\n\nI'm combining my process intelligence background with cutting-edge AI to build transformative solutions!";
+                }
+
+                if (lowerMessage.includes('ai') || lowerMessage.includes('machine learning') || lowerMessage.includes('ml')) {
+                    return "🤖 I have extensive AI/ML experience and I'm actively expanding it for ML Engineering roles:\n\n**Current Expertise**: LLM, GenAI, GPT, Claude, Microsoft Copilot, Random Forest, Naive Bayes, Time Series Forecasting, SVM, KNN\n\n**Advanced Skills**: MLOps, deep learning, model deployment, AI system architecture\n\n**Practical Application**: Check out my 3D object detection and predictive modeling projects - they showcase real ML implementations!\n\n🎯 Goal: Build production ML systems that solve complex business problems!";
+                }
+
+                // SAP and work experience
+                if (lowerMessage.includes('sap') || lowerMessage.includes('signavio')) {
+                    return "At SAP Signavio, I specialize in process intelligence and business transformation. I've helped secure major contracts including a $5.8M deal with Kraft Heinz and guided Southern California Edison through system-wide transformation across 300+ systems. I work with enterprise clients in energy, utilities, government, and manufacturing sectors.";
+                }
+
+                if (lowerMessage.includes('experience') || lowerMessage.includes('work') || lowerMessage.includes('career')) {
+                    return "I have 4+ years of professional experience in data analytics and business transformation. Started as a Data Science Intern at CDW, then worked as a Business Analyst at United Software Corporation building government procurement systems, and now I'm a Solution Advisor at SAP Signavio leading process mining initiatives.";
+                }
+
+                // Specific projects
+                if (lowerMessage.includes('3d') || lowerMessage.includes('object detection') || lowerMessage.includes('lyft') || lowerMessage.includes('autonomous')) {
+                    return "🚗 Check out my Lyft 3D Object Detection for Autonomous Vehicles project! It's focused on computer vision and autonomous driving technology.\n\n🔗 Visit: https://github.com/kezhen-yang/Lyft_3D_Object_Detection_for_Autonomous_Vehicles";
+                }
+
+                if (lowerMessage.includes('predictive') || lowerMessage.includes('modeling') || lowerMessage.includes('advanced')) {
+                    return "📊 My Advanced Predictive Modeling repository contains comprehensive code and analysis for various ML models and techniques.\n\n🔗 Visit: https://github.com/kezhen-yang/Advanced_Predictive_Modeling";
+                }
+
+                if (lowerMessage.includes('hand tracking') || lowerMessage.includes('computer vision') || lowerMessage.includes('opencv')) {
+                    return "👋 The Hand Tracking Project demonstrates computer vision capabilities using Python and OpenCV for real-time hand gesture recognition.\n\n🔗 Visit: https://github.com/kezhen-yang/HandTrackingProject";
+                }
+
+                // Cloud and technical details
+                if (lowerMessage.includes('cloud') || lowerMessage.includes('aws') || lowerMessage.includes('azure') || lowerMessage.includes('gcp')) {
+                    return "I work extensively with cloud platforms including AWS, Google Cloud Platform (GCP), and Microsoft Azure. I build ETL pipelines, manage large-scale data processing (I've worked with 65+ TB datasets), and implement data analytics solutions in cloud environments.";
+                }
+
+                // Default greetings and common interactions
+                if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                    return "Hello! Great to meet you! I'm Kezhen Yang, a Solution Advisor at SAP Signavio with expertise in data analytics and a focus on ML/AI Engineering. What would you like to know about my background or experience?";
+                }
+
+                if (lowerMessage.includes('how are you') || lowerMessage.includes('how you doing')) {
+                    return "I'm doing great, thank you for asking! I'm excited to share more about my work in data analytics, process mining, and my expertise in ML/AI technologies. What interests you most about my background?";
+                }
+
+                // Personal interests
+                if (lowerMessage.includes('hobby') || lowerMessage.includes('fun') || lowerMessage.includes('interest') || lowerMessage.includes('free time')) {
+                    return "When I'm not working on ML/AI projects and professional development, I enjoy exploring Austin's amazing food scene, staying current with the latest AI research and developments, and working on personal coding projects. Austin has incredible BBQ and live music! 🎵\n\n🤖 I'm particularly excited about following AI breakthroughs and implementing them in my own projects!";
+                }
+
+                // Generic fallback responses
+                const fallbackResponses = [
+                    "That's an interesting question! I'm a Solution Advisor at SAP Signavio with expertise in ML/AI technologies. Could you be more specific about what aspect of my background you'd like to know more about?",
+                    "I'd be happy to help! I have experience in data science, business analytics, process mining, and ML/AI engineering. What particular area would you like me to elaborate on?",
+                    "Thanks for your question! With my background in business analytics and focus on ML/AI, I work on various data transformation projects. Is there something specific about my experience you'd like to learn more about?",
+                    "Great question! I'm passionate about using data and AI to drive business transformation. Feel free to ask me about my technical skills, projects, professional experience, or ML/AI expertise!"
+                ];
+
+                return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+            }
+            }
+
+            getProjectNavigationResponse(lowerMessage) {
+                // Specific project keywords
+                if (lowerMessage.includes('machine learning') || lowerMessage.includes('ml') || lowerMessage.includes('ai')) {
+                    return "🤖 Here are my AI/ML projects showcasing my technical expertise:\n\n🚗 **Lyft 3D Object Detection** - Computer vision & deep learning for autonomous vehicles\n📊 **Advanced Predictive Modeling** - Comprehensive ML algorithms & analysis\n👋 **Hand Tracking Project** - Real-time AI with OpenCV\n📈 **Regression Analysis** - Statistical ML foundations\n\n💡 These projects demonstrate my hands-on ML skills for engineering roles. Which interests you most?";
+                }
+
+                if (lowerMessage.includes('computer vision') || lowerMessage.includes('cv') || lowerMessage.includes('vision')) {
+                    return "👁️ My computer vision projects (key for ML/AI roles):\n\n🚗 **Lyft 3D Object Detection** - Advanced CV for autonomous vehicles\n👋 **Hand Tracking Project** - Real-time gesture recognition with OpenCV\n\n🎯 These projects showcase practical CV skills essential for ML Engineering positions!";
+                }
+
+                if (lowerMessage.includes('data science') || lowerMessage.includes('analytics') || lowerMessage.includes('analysis')) {
+                    return "📊 My data science portfolio:\n\n📈 **Advanced Predictive Modeling** - Various ML techniques & algorithms\n🌐 **Portfolio Website** - Data science & econometrics showcase\n📉 **Regression Projects** - Statistical modeling foundations\n\n🚀 These demonstrate the analytical foundation essential for ML/AI Engineering roles!";
+                }
+
+                // General project navigation
+                return "🚀 My GitHub showcases my ML/AI Engineering capabilities:\n\n🚗 **Lyft 3D Object Detection** - Advanced ML for autonomous vehicles\n📊 **Advanced Predictive Modeling** - Comprehensive ML algorithms\n👋 **Hand Tracking** - Real-time AI applications\n🌐 **Portfolio Website** - Technical skills showcase\n📈 **Statistical Projects** - ML foundations\n\n🎯 Each project demonstrates my commitment to ML/AI Engineering. Ask about specific technologies!";
+            }
+        }
+
+        // Initialize chatbot
+        const chatbot = new KezhenChatbot();
+    </script>
+</body>
+</html>
