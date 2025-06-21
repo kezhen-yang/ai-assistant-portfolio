@@ -1,0 +1,26 @@
+{
+  "common_questions": [
+    "What is machine learning?",
+    "How do I start a career in data science?",
+    "What are the latest trends in AI?",
+    "What programming languages should I learn for ML?",
+    "How do I deploy machine learning models?",
+    "What is the difference between AI and ML?",
+    "What are neural networks?",
+    "How do I learn deep learning?",
+    "What is MLOps?",
+    "What cloud platforms are best for ML?",
+    "What is data science?",
+    "How to become a machine learning engineer?",
+    "What skills do I need for AI jobs?",
+    "What is computer vision?",
+    "How to learn Python for data science?",
+    "What is natural language processing?",
+    "What are the best ML frameworks?",
+    "How to build a data science portfolio?",
+    "What is the future of AI?",
+    "How to transition to a tech career?"
+  ],
+  "update_schedule": "weekly",
+  "max_response_length": 300
+}
