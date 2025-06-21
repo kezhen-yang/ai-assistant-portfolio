@@ -457,7 +457,7 @@
             }
         });
 
-        function askSuggestion(question) {
+        async function askSuggestion(question) {
             console.log('Suggestion clicked:', question);
             startChat();
             chatInput.value = question;
@@ -480,27 +480,31 @@
             sendButton.disabled = true;
         }
 
-        function handleSend() {
+        async function handleSend() {
             const message = chatInput.value.trim();
             if (!message || isTyping) return;
-
+        
             console.log('Sending message:', message);
-
+        
             if (welcomeScreen.style.display !== 'none') {
                 startChat();
             }
-
+        
             addMessage(message, 'user');
             chatInput.value = '';
             chatInput.style.height = 'auto';
             sendButton.disabled = true;
-
+        
             showTypingIndicator();
-            setTimeout(() => {
+            
+            try {
+                const response = await generateResponse(message);
                 hideTypingIndicator();
-                const response = generateResponse(message);
                 addMessage(response, 'bot');
-            }, 800 + Math.random() * 1200);
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage("I apologize, but I'm having trouble connecting right now. Please try again.", 'bot');
+            }
         }
 
         function addMessage(text, sender) {
@@ -540,56 +544,51 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function generateResponse(message) {
-            const lowerMessage = message.toLowerCase();
-
-            // Contact Information (highest priority)
-            if (lowerMessage.includes('contact') || lowerMessage.includes('reach') || lowerMessage.includes('linkedin') || lowerMessage.includes('email')) {
-                return "You can reach me at kezhenyang12@gmail.com or connect with me on LinkedIn at linkedin.com/in/kezhenyang. I'm also on GitHub at github.com/kezhen-yang. Always happy to connect with fellow professionals!";
+        async function generateResponse(message) {
+            try {
+                const response = await fetch('https://kezhen-yang.vercel.app/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            {
+                                role: "system",
+                                content: `You are Kezhen Yang's AI assistant. Kezhen is a Solution Advisor - Data Specialist at SAP America with 4+ years of experience in data analytics and business transformation. 
+                                
+                                Key information:
+                                - Current Role: Solution Advisor - Data Specialist at SAP America (since January 2022)
+                                - Location: Austin, Texas
+                                - Education: B.A. Economics (2019) and M.S. Business Analytics (2020) from UT Austin
+                                - Email: kezhenyang12@gmail.com
+                                - LinkedIn: linkedin.com/in/kezhenyang
+                                - GitHub: github.com/kezhen-yang
+                                - Skills: Python, SQL, R, SAS, HTML, JavaScript, ML/AI (LLM, GenAI, GPT, Claude)
+                                - Projects: Lyft 3D Object Detection, Advanced Predictive Modeling, Hand Tracking
+                                - Career Goal: Advancing into Machine Learning Engineering roles
+                                
+                                Respond in a friendly, professional manner and provide detailed information when asked.`
+                            },
+                            {
+                                role: "user",
+                                content: message
+                            }
+                        ]
+                    }),
+                });
+        
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+        
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('Error calling API:', error);
+                // Fallback to a simple response if API fails
+                return "I apologize, but I'm having trouble connecting to my AI service right now. Please try again in a moment, or feel free to reach out directly at kezhenyang12@gmail.com!";
             }
-
-            // Professional Background
-            if (lowerMessage.includes('professional') && (lowerMessage.includes('background') || lowerMessage.includes('experience'))) {
-                return "💼 I'm a Solution Advisor - Data Specialist at SAP America with 4+ years of experience in data analytics and business transformation. My expertise spans process intelligence, ML/AI technologies, and large-scale data processing.\n\n🎯 I'm focused on advancing my career in Machine Learning Engineering, leveraging my strong foundation in data analytics and hands-on ML project experience.";
-            }
-
-            // Current Role
-            if (lowerMessage.includes('current') && (lowerMessage.includes('role') || lowerMessage.includes('job') || lowerMessage.includes('position'))) {
-                return "I'm currently a Solution Advisor - Data Specialist at SAP America, where I lead Process Mining POCs and have influenced $10M+ in contracts with clients like Microsoft and Kraft Heinz. I've been at SAP since January 2022.\n\n🎯 I'm focused on advancing my career in Machine Learning Engineering, leveraging this business + technical experience to build production ML systems!";
-            }
-
-            // Projects
-            if (lowerMessage.includes('project') || lowerMessage.includes('github') || lowerMessage.includes('ml') || lowerMessage.includes('ai')) {
-                return "🚀 My GitHub showcases my ML/AI Engineering capabilities:\n\n🚗 **Lyft 3D Object Detection** - Advanced ML for autonomous vehicles\n📊 **Advanced Predictive Modeling** - Comprehensive ML algorithms\n👋 **Hand Tracking** - Real-time AI applications\n🌐 **Portfolio Website** - Technical skills showcase\n📈 **Statistical Projects** - ML foundations\n\n🎯 Each project demonstrates my commitment to ML/AI Engineering. Ask about specific technologies!";
-            }
-
-            // Skills
-            if (lowerMessage.includes('skill') || lowerMessage.includes('technical') || lowerMessage.includes('programming')) {
-                return "My technical skills include Python, SQL, R, SAS, HTML, JavaScript, and SIGNAL for programming. I'm experienced with ML/AI technologies like LLM, GenAI, GPT, Claude, and various algorithms. I work with cloud platforms (AWS, GCP, Azure) and specialize in ETL pipelines, process mining, and data analytics.";
-            }
-
-            // Career Goals
-            if (lowerMessage.includes('career') && (lowerMessage.includes('goal') || lowerMessage.includes('aspiration') || lowerMessage.includes('objective'))) {
-                return "🎯 My career is focused on Machine Learning Engineering and AI Engineering roles where I can build production ML systems that solve real-world problems.\n\n💡 I'm leveraging my 4+ years of data experience while expanding my ML/AI expertise through hands-on projects and continuous learning. My business background gives me unique insight into ML solutions that drive real value.";
-            }
-
-            // Location
-            if (lowerMessage.includes('location') || lowerMessage.includes('where') || lowerMessage.includes('based')) {
-                return "I'm based in Austin, Texas! 🤠 It's a great city for tech with amazing food, music, and a vibrant startup scene. You can reach me at kezhenyang12@gmail.com or connect with me on LinkedIn.";
-            }
-
-            // Education
-            if (lowerMessage.includes('education') || lowerMessage.includes('degree') || lowerMessage.includes('university') || lowerMessage.includes('school')) {
-                return "I have both my Bachelor's and Master's degrees from The University of Texas at Austin. I earned my B.A. in Economics in 2019 (GPA: 3.77) and my M.S. in Business Analytics in 2020 (GPA: 3.66). Hook 'em Horns! 🤘";
-            }
-
-            // Greetings
-            if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-                return "Hello! Great to meet you! I'm Kezhen Yang, a Solution Advisor at SAP Signavio with expertise in data analytics and a focus on ML/AI Engineering. What would you like to know about my background or experience?";
-            }
-
-            // Default response
-            return "That's an interesting question! I'm a Solution Advisor at SAP Signavio with expertise in ML/AI technologies. Could you be more specific about what aspect of my background you'd like to know more about?";
         }
 
         // Test the functionality
