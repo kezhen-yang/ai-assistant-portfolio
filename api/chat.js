@@ -23,7 +23,13 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: req.body.messages,
+        messages: [
+          {
+            role: "system",
+            content: process.env.SYSTEM_PROMPT  // Using environment variable
+          },
+          ...req.body.messages
+        ],
         temperature: 0.7,
         max_tokens: 500
       }),
