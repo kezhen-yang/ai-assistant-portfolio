@@ -1,11 +1,7 @@
-<div align="center">
-  
-# 👋 Hi, I'm Kezhen Yang!
+## 🤖 Chat with My AI Assistant
 
 <a href="https://kezhen-yang.github.io/kezhen-yang/">
-  <img src="https://img.shields.io/badge/💬_Chat_with_my_AI_Assistant-Click_Here!-brightgreen?style=for-the-badge&logo=openai" alt="Chat with Me" />
+  <img src="chatbot-demo.gif" alt="Chat Demo" width="600"/>
 </a>
 
-### Want to learn about my background instantly? My AI assistant is available 24/7!
-
-</div>
+Click the image above to start chatting!
